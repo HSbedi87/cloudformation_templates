@@ -1,0 +1,59 @@
+AWSTemplateFormatVersion: '2010-09-09'
+
+Description: CFN 101 Workshop - Lab 04 Mapping.
+
+Mappings:
+  EnvironmentToInstanceType: # Map Name
+    Test: # Top level key
+      InstanceType: t2.micro # Second level key
+    Prod:
+      InstanceType: t2.small
+    Dev:
+      InstanceType: t2.nano
+
+Metadata:
+  AWS::CloudFormation::Interface:
+    ParameterGroups:
+      - Label:
+          default: 'Amazon EC2 Configuration'
+        Parameters:
+          # Remove InstanceType group.
+          - AmiID
+
+    ParameterLabels:
+      # Remove the InstanceType parameter label.
+      AmiID:
+        default: 'Amazon Machine Image ID'
+
+Parameters:
+  # Replace the InstanceType parameter with EnvironmentType parameter.
+
+  AmiID:
+    Type: AWS::EC2::Image::Id
+    Description: 'The ID of the AMI.'
+  
+  EnvironmentType:
+    Description: 'Specify the Rnvironment type of stack'
+    Type: String
+    Default: Test
+    AllowedValues:
+      - Test
+      - Prod
+      - Dev
+    ConstraintDescription: 'Specify either Dev, Test or Prod'
+
+# Add a Mappings section here!
+
+Resources:
+  WebServerInstance:
+    Type: AWS::EC2::Instance
+    Properties:
+      ImageId: !Ref AmiID
+
+      InstanceType: !FindInMap
+        - EnvironmentToInstanceType # Map Name
+        - !Ref EnvironmentType
+        - InstanceType
+      Tags:
+        - Key: Name
+          Value: !Join [ '-', [ !Ref EnvironmentType, webserver ] ] # replace the 'InstanceType' with 'EnvironmentType'
